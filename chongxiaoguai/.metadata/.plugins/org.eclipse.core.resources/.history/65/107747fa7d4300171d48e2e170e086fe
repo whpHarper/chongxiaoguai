@@ -1,0 +1,11 @@
+package com.cxg.interactiveweb.login.service;
+
+import org.springframework.stereotype.Service;
+
+import com.cxg.entity.LoginBean;
+import com.cxg.service.IGeneralService;
+
+@Service
+public interface LoginService extends IGeneralService<LoginBean>{
+
+}

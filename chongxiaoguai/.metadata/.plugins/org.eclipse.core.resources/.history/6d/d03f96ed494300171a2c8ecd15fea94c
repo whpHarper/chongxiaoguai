@@ -1,0 +1,23 @@
+package com.cxg.interactiveweb.login.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.cxg.entity.LoginBean;
+import com.cxg.interactiveweb.login.service.LoginService;
+
+@Controller
+@RequestMapping("login")
+public class LoginController {
+	
+	@Autowired
+	private LoginService loginService;
+	
+	public String getLoginInfo(){
+		Long id=1L;
+		LoginBean loginBean=loginService.selectByPrimaryKey(id);
+		System.out.println(loginBean.toString());
+		return loginBean.toString();
+	}
+}

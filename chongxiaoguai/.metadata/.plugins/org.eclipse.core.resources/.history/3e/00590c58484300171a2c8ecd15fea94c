@@ -1,0 +1,8 @@
+package com.cxg.interactiveweb.service;
+
+import com.cxg.entity.LoginBean;
+import com.cxg.service.IGeneralService;
+
+public interface LoginService extends IGeneralService<LoginBean>{
+
+}

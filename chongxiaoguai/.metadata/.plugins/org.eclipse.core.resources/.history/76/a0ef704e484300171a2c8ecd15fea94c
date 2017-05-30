@@ -1,0 +1,5 @@
+package com.cxg.interactiveweb.controller;
+
+public class LoginController {
+
+}

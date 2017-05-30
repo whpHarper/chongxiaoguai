@@ -1,0 +1,6 @@
+#Tomcat publish data
+#Mon May 29 19:36:22 CST 2017
+org.eclipse.jst.j2ee.server\:cxg-common=WEB-INF/lib/cxg-common-0.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:cxg-pojo=WEB-INF/lib/cxg-pojo-0.0.1-SNAPSHOT.jar
+org.eclipse.jst.jee.server\:/binary\:D\:\\hope\\maven\\repo-r2cf\\org\\springframework\\spring-web\\4.3.0.RELEASE\\spring-web-4.3.0.RELEASE.jar=WEB-INF/lib/spring-web-4.3.0.RELEASE.jar
+org.eclipse.jst.j2ee.server\:cxg-manager=WEB-INF/lib/cxg-manager-0.0.1-SNAPSHOT.jar

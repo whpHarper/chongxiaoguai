@@ -1,0 +1,341 @@
+package com.r2cf.interactiveweb.logs.util;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Date;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.r2cf.entity.CustUserBean;
+import com.r2cf.entity.SystemLogBean;
+import com.r2cf.interactiveweb.logs.service.SystemLogService;
+import com.r2cf.interactiveweb.tools.IpUtil;
+import com.r2cf.interactiveweb.tools.Log;
+import com.r2cf.interactiveweb.tools.UserUtils;
+
+/**
+ * @Description: 自定义切点类
+ * @author liulin
+ * @date 2017年4月10日
+ */
+@Aspect
+@Component
+public class SystemLogAspect {
+	// 注入Service用于把日志保存数据库
+	@Resource
+	private SystemLogService systemLogService;
+	private static final Logger logger = LoggerFactory
+			.getLogger(SystemLogAspect.class);
+
+	// Controller层切点
+	// 第一个*代表所有的返回值类型
+	// 第二个*代表所有的类
+	// 第三个*代表类所有方法
+	// 最后一个..代表所有的参数。
+//	@Pointcut("* com.r2cf.interactiveweb.*.controller..*.*(..))")
+//	public void controllerAspect() {
+//	}
+
+
+	/**
+	 * @Description: 前置通知 用于拦截Controller层记录用户的操作
+	 * @param @param joinPoint
+	 * @return void
+	 * @author liulin
+	 */
+	public void doBefore(JoinPoint joinPoint) {
+		/*
+		 * logger.info("==========执行controller前置通知===============");
+		 * if(logger.isInfoEnabled()){ logger.info("before " + joinPoint); }
+		 */
+
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+				.getRequestAttributes()).getRequest();
+		HttpSession session = request.getSession();
+		// 读取session中的用户
+		CustUserBean user = UserUtils.getUserBySession(session);
+		if (user == null) {
+			user = new CustUserBean();
+			user.setName("非注册用户");
+		}
+		// 请求的IP
+		String ip = IpUtil.getIpAddress(request);
+		String targetName = joinPoint.getTarget().getClass().getName();
+		String methodName = joinPoint.getSignature().getName();
+		try {
+
+			Object[] arguments = joinPoint.getArgs();
+			Class targetClass = Class.forName(targetName);
+			Method[] methods = targetClass.getMethods();
+			String operationType = "";
+			String operationName = "";
+			for (Method method : methods) {
+				if (method.getName().equals(methodName)) {
+					Class[] clazzs = method.getParameterTypes();
+					if (clazzs.length == arguments.length) {
+						operationType = method.getAnnotation(Log.class)
+								.operationType();
+						operationName = method.getAnnotation(Log.class)
+								.operationName();
+						break;
+					}
+				}
+			}
+			// *========控制台输出=========*//
+			logger.info("=====Entering   " + methodName + "()=====");
+			logger.info("请求方法:"
+					+ (joinPoint.getTarget().getClass().getName() + "."
+							+ joinPoint.getSignature().getName() + "()") + "."
+					+ operationType);
+			logger.info("方法描述:" + operationName);
+			logger.info("请求人:" + user.getName());
+			logger.info("请求IP:" + ip);
+			// *========数据库日志=========*//
+			SystemLogBean log = new SystemLogBean();
+			log.setDescription(operationName);
+			log.setMethod((joinPoint.getTarget().getClass().getName() + "."
+					+ joinPoint.getSignature().getName() + "()")
+					+ "." + operationType);
+			log.setLogType(0);
+			log.setRequestIp(ip);
+			log.setExceptionCode(null);
+			log.setExceptionDetail(null);
+			log.setParams(null);
+			log.setCreateBy(user.getName());
+			log.setCreateDate(new Date());
+			log.setRequestIp(ip);
+			// 保存数据库
+			systemLogService.saveSystemLog(log);
+		} catch (Exception e) {
+			// 记录本地异常日志
+			logger.error("=====Entering   " + methodName + "()异常==");
+			logger.error("异常信息:{}", e.getMessage());
+		}
+
+	}
+
+	/**
+	 * @Description: 环绕通知
+	 * @param @param joinPoint
+	 * @return void
+	 * @author liulin
+	 * @return
+	 */
+	public Object doAround(ProceedingJoinPoint joinPoint) {
+		logger.info("==========开始执行controller环绕通知===============");
+		long start = System.currentTimeMillis();
+		Object retVal = null;
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+				.getRequestAttributes()).getRequest();
+		HttpSession session = request.getSession();
+		// 读取session中的用户
+		CustUserBean user = UserUtils.getUserBySession(session);
+		if (user == null) {
+			user = new CustUserBean();
+			user.setName("非注册用户");
+		}
+		// 请求的IP
+		try {
+			String ip = IpUtil.getIpAddress(request);
+			String targetName = joinPoint.getTarget().getClass().getName();
+			String methodName = joinPoint.getSignature().getName();
+			Object[] arguments = joinPoint.getArgs();
+			Class targetClass = Class.forName(targetName);
+			Method[] methods = targetClass.getMethods();
+			String operationType = "";
+			String operationName = "";
+			// String description = "";
+			for (Method method : methods) {
+				if (method.getName().equals(methodName)) {
+					Class[] clazzs = method.getParameterTypes();
+					if (clazzs.length == arguments.length) {
+						operationType = method.getAnnotation(Log.class)
+								.operationType();
+						operationName = method.getAnnotation(Log.class)
+								.operationName();
+						break;
+					}
+				}
+			}
+			// *========控制台输出=========*//
+			logger.info("请求方法:"
+					+ (joinPoint.getTarget().getClass().getName() + "."
+							+ joinPoint.getSignature().getName() + "()") + "."
+					+ operationType);
+			logger.info("方法描述:" + operationName);
+			logger.info("请求人:" + user.getName());
+			logger.info("请求IP:" + ip);
+			// *========数据库日志=========*//
+			SystemLogBean log = new SystemLogBean();
+			log.setDescription(operationName);
+			log.setMethod((joinPoint.getTarget().getClass().getName() + "."
+					+ joinPoint.getSignature().getName() + "()"));
+			log.setLogType(0);
+			log.setRequestIp(ip);
+			log.setExceptionCode(null);
+			log.setExceptionDetail(null);
+			log.setParams(null);
+			log.setCreateBy(user.getName());
+			log.setCreateDate(new Date());
+			log.setRequestIp(ip);
+			// 保存数据库
+			systemLogService.saveSystemLog(log);
+			// 调用目标对象的方法
+			retVal = joinPoint.proceed();
+			logger.info("=====controller环绕通知结束=====");
+			return retVal;
+		} catch (Throwable e) {
+			long end = System.currentTimeMillis();
+			if (logger.isInfoEnabled()) {
+				logger.info("around " + joinPoint + "\tUse time : "
+						+ (end - start) + " ms with exception : "
+						+ e.getMessage());
+			}
+			return retVal;
+		}
+	}
+
+	/**
+	 * @Description: 异常通知 用于拦截记录异常日志
+	 * @param @param joinPoint
+	 * @param @param e
+	 * @return void
+	 * @author liulin
+	 * @throws SecurityException
+	 * @throws NoSuchFieldException
+	 */
+	public void doAfterThrowing(JoinPoint joinPoint, Throwable e)
+			throws NoSuchFieldException, SecurityException {
+
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+				.getRequestAttributes()).getRequest();
+		HttpSession session = request.getSession();
+		// 读取session中的用户
+		CustUserBean user = UserUtils.getUserBySession(session);
+		if (user == null) {
+			user = new CustUserBean();
+			user.setName("非注册用户");
+		}
+		// 请求的IP
+		String ip = request.getRemoteAddr();
+		String params = "";
+		Object[] args = joinPoint.getArgs();
+		if (args != null && args.length > 0) {
+			for (Object obj : args) {
+				if (null != obj) {
+					Field[] fields = obj.getClass().getDeclaredFields();
+					if (null != fields && fields.length > 0) {
+						params += obj.getClass().getSimpleName() + "[";
+						for (Field field : fields) {
+							String name = field.getName();
+							Object value = getFieldValueByName(name, obj);
+							if (null != value && (!"".equals(value))) {
+								params += name + ":" + value + ";";
+							}
+						}
+						params += "],";
+					} else {
+						params += obj.getClass().getSimpleName() + ":"
+								+ obj.toString() + ";";
+					}
+				}
+			}
+
+		}
+		try {
+
+			String targetName = joinPoint.getTarget().getClass().getName();
+			String methodName = joinPoint.getSignature().getName();
+			Object[] arguments = joinPoint.getArgs();
+			Class targetClass = Class.forName(targetName);
+			Method[] methods = targetClass.getMethods();
+			String operationType = "";
+			String operationName = "";
+			for (Method method : methods) {
+				if (method.getName().equals(methodName)) {
+					Class[] clazzs = method.getParameterTypes();
+					if (clazzs.length == arguments.length) {
+						operationType = method.getAnnotation(Log.class)
+								.operationType();
+						operationName = method.getAnnotation(Log.class)
+								.operationName();
+						break;
+					}
+				}
+			}
+			/* ========控制台输出========= */
+			logger.info("=====异常通知开始=====");
+			logger.info("异常代码:" + e.getClass().getName());
+			logger.info("异常信息:" + e.getMessage());
+			logger.info("异常方法:"
+					+ (joinPoint.getTarget().getClass().getName() + "."
+							+ joinPoint.getSignature().getName() + "()"));
+			logger.info("方法描述:" + operationName);
+			logger.info("请求人:" + user.getName());
+			logger.info("请求IP:" + ip);
+			logger.info("请求参数:" + params);
+			// ==========数据库日志=========
+			SystemLogBean log = new SystemLogBean();
+			log.setDescription(operationName);
+			log.setExceptionCode(e.getClass().getName());
+			log.setLogType(1);
+			log.setExceptionDetail(e.getMessage());
+			log.setMethod((joinPoint.getTarget().getClass().getName() + "."
+					+ joinPoint.getSignature().getName() + "()"));
+			log.setParams(params);
+			log.setCreateBy(user.getName());
+			log.setCreateDate(new Date());
+			log.setRequestIp(ip);
+			// 保存数据库
+			systemLogService.saveSystemLog(log);
+
+			logger.info("=====异常通知结束=====");
+		} catch (Exception ex) {
+			// 记录本地异常日志
+			logger.error("==异常通知异常==");
+			logger.error("异常信息:{}", ex.getMessage());
+		}
+		// ==========记录本地异常日志==========
+		logger.error("异常方法:{}异常代码:{}异常信息:{}参数:{}", joinPoint.getTarget()
+				.getClass().getName()
+				+ joinPoint.getSignature().getName(), e.getClass().getName(),
+				e.getMessage(), params);
+
+	}
+
+	/**
+	 * @Description: 根据属性名获取属性值
+	 * @param @param fieldName
+	 * @param @param o
+	 * @param @return
+	 * @return Object
+	 * @author liulin
+	 */
+	private Object getFieldValueByName(String fieldName, Object o) {
+		try {
+			String firstLetter = fieldName.substring(0, 1).toUpperCase();
+			String getter = "get" + firstLetter + fieldName.substring(1);
+			if (o.getClass().getName().startsWith("com.r2cf")) {
+				Method method = o.getClass().getMethod(getter, new Class[] {});
+				Object value = method.invoke(o, new Object[] {});
+				return value;
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return null;
+		}
+	}
+}

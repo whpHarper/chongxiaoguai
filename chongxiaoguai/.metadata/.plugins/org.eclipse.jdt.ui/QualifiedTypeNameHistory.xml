@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="com.cxg.common.mapper.IGeneralDaoMybatis"/>
+<fullyQualifiedTypeName name="com.cxg.service.IGeneralService"/>
+<fullyQualifiedTypeName name="com.cxg.interactiveweb.service.LoginService"/>
+<fullyQualifiedTypeName name="com.cxg.service.impl.GeneralServiceImpl"/>
+<fullyQualifiedTypeName name="org.springframework.stereotype.Service"/>
+<fullyQualifiedTypeName name="org.springframework.stereotype.Controller"/>
+<fullyQualifiedTypeName name="org.springframework.web.bind.annotation.RequestMapping"/>
+<fullyQualifiedTypeName name="org.springframework.beans.factory.annotation.Autowired"/>
+<fullyQualifiedTypeName name="com.cxg.interactiveweb.login.service.LoginService"/>
+<fullyQualifiedTypeName name="com.cxg.entity.LoginBean"/>
+<fullyQualifiedTypeName name="org.springframework.web.bind.annotation.RequestMethod"/>
+<fullyQualifiedTypeName name="org.springframework.web.bind.annotation.ResponseBody"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+</qualifiedTypeNameHistroy>

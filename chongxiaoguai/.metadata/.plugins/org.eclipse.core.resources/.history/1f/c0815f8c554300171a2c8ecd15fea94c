@@ -1,0 +1,29 @@
+package com.r2cf.interactiveweb.logs.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.r2cf.entity.LogsInfoBean;
+import com.r2cf.interactiveweb.dao.LogsInfoDao;
+import com.r2cf.interactiveweb.logs.service.LogsInfoService;
+import com.r2cf.service.impl.GeneralServiceImpl;
+
+/**
+ * @ClassName: LogsInfoServiceImpl
+* @Description: 日志管理
+* @author tanghuan
+* @date 2017年2月13日
+ */
+@Service("logsInfoService")
+public class LogsInfoServiceImpl extends GeneralServiceImpl<LogsInfoBean> implements
+		LogsInfoService {
+	@Autowired
+	private LogsInfoDao logsInfoDao;
+	@Override
+	public void insertLogsInfo(LogsInfoBean logsInfoBean) {
+		logsInfoDao.insertLogsInfo(logsInfoBean);
+	}
+
+	
+
+}

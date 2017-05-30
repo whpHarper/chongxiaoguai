@@ -1,0 +1,15 @@
+package com.r2cf.interactiveweb.dao;
+
+import com.r2cf.common.mapper.IGeneralDaoMybatis;
+import com.r2cf.entity.LogsInfoBean;
+/**
+ * @ClassName: LogsInfoDao
+* @Description: 日志表
+* @author tanghuan
+* @date 2017年2月13日
+ */
+public interface LogsInfoDao extends IGeneralDaoMybatis<LogsInfoBean>{
+
+	public void insertLogsInfo(LogsInfoBean logsInfoBean);
+
+}

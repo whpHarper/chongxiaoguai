@@ -1,0 +1,5 @@
+package com.cxg.interactiveweb.service.impl;
+
+public class LoginServiceImpl {
+
+}

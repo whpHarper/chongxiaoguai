@@ -1,0 +1,5 @@
+package com.cxg.interactiveweb.dao;
+
+public interface LoginDao extends IGeneralDaoMybatis<CityInfoBean>{
+
+}
